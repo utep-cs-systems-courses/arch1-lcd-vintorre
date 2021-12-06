@@ -1,5 +1,6 @@
 #include <msp430.h>
 #include <libTimer.h>
+#include "buzzer.h"
 #include "lcdutils.h"
 #include "lcddraw.h"
 
@@ -123,4 +124,53 @@ __interrupt_vec(PORT2_VECTOR) Port_2(){
     P2IFG &= ~SWITCHES;		      /* clear pending sw interrupts */
     switch_interrupt_handler();	/* single handler for all switches */
   }
+}
+
+void triangle(u_char positionCol, u_char positionRow, u_char size, u_int color){
+  for(int row = 0; row <= size; row++){
+    for(int col = 0; col <= size - row; col++){
+      drawPixel(positionCol + col, positionRow + row, color);
+      drawPixel(positionCol - col, positionRow + row, color);
+    }
+  }
+}
+
+void diamond(u_char positionCol, u_char positionRow, u_char size, u_int color){
+  for(int row = 0; row <= size; row++){
+    for(int col = 0; col <= size - row; col++){
+      drawPixel(positionCol + col, positionRow - row, color);
+      drawPixel(positionCol - col, positionRow - row, color);
+    }
+  }
+  fillTriangle(positionCol, positionRow, size, color);
+}
+
+void state1(){
+  if(refresh){
+    refresh = 0;
+    int diamondCol = nextRow + 45;
+    diamond(30, diamondCol, 15, COLOR_RED);
+    diamond(90, diamondCol, 15, COLOR_WHITE);
+    currentRow = nextRow;
+  }
+}
+
+void state2(){
+  drawString11x16(40,5, "Hello", COLOR_BLUE, COLOR_RED);
+
+}
+
+void state3(){
+  clearScreen(COLOR_WHITE);
+}
+
+void state4(){
+  song();
+}
+
+void states(){
+  if(switches & SW1) state1();
+  if(switches & SW2) state2();
+  if(switches & SW3) state3();
+  if(switches & SW4) state4();
 }
